@@ -1,83 +1,69 @@
 package kernel
 
-import "unsafe"
-
-const (
-  COLOR_BLACK = iota
-	COLOR_BLUE
-	COLOR_GREEN
-	COLOR_CYAN
-	COLOR_RED
-	COLOR_MAGENTA
-	COLOR_BROWN
-	COLOR_LIGHT_GREY
-	COLOR_DARK_GREY
-	COLOR_LIGHT_BLUE
-	COLOR_LIGHT_GREEN
-	COLOR_LIGHT_CYAN
-	COLOR_LIGHT_RED
-	COLOR_LIGHT_MAGENTA
-	COLOR_LIGHT_BROWN
-	COLOR_WHITE
+var (
+	row, column int
+	color       uint8
+	buffer      uintptr
 )
 
-const (
-  VGA_WIDTH = 80
-  VGA_HEIGHT = 25
-)
-
-var row, column, color uint8
-var buffer uintptr
-
-func makeColor(fg uint8, bg uint8) uint8 {
-  return fg | bg << 4
+/*
+type MultibootAoutSymbolTable struct {
+	TabSize  uint32
+	StrSize  uint32
+	Addr     uint32
+	Reserved uint32
 }
+type MultibootElfSectionHeaderTable struct {
+	Num   uint32
+	Size  uint32
+	Addr  uint32
+	Shndx uint32
+}*/
+// type MultibootInfo struct {
+// 	/* Multiboot info version number */
+// 	Flags uint32
 
-func makeVGAEntry(c byte, color uint8) uint16 {
-  return uint16(c) | uint16(color) << 8
-}
+// 	/* Available memory from BIOS */
+// 	MemLower uint32
+// 	MemUpper uint32
 
-func terminalInit() {
-  row = 0
-  column = 0
-  color = makeColor(COLOR_LIGHT_GREY, COLOR_BLACK)
-  buffer = 0xB8000
-  for y := 0; y < VGA_HEIGHT; y += 1 {
-    for x := 0; x < VGA_WIDTH; x += 1 {
-      terminalPutEntryAt(' ', color, uint8(x), uint8(y))
-    }
-  }
-}
+// 	/* "root" partition */
+// 	BootDevice uint32
 
-func terminalSetColor(c uint8) {
-  color = c
-}
+// 	/* Kernel command line */
+// 	Cmdline uint32
 
-func terminalPutEntryAt(c byte, color uint8, x uint8, y uint8){
-  index := y * VGA_WIDTH + x
-  addr := (*uint16)(unsafe.Pointer(buffer + 2 * uintptr(index)))
-  *addr = makeVGAEntry(c, color)
-}
+// 	/* Boot-Module list */
+// 	ModsCount uint32
+// 	ModsAddr  uint32
+// 	ElfSec    MultibootElfSectionHeaderTable
 
-func terminalPutChar(c byte) {
-  terminalPutEntryAt(c, color, column, row)
-  column+=1
-  if column == VGA_WIDTH {
-    column = 0
-    row += 1
-    if row == VGA_HEIGHT {
-      row = 0
-    }
-  }
-}
+// 	/* Memory Mapping buffer */
+// 	MmapLength uint32
+// 	MmapAddr   uint32
 
-func writeString(data string) {
-  for i:= 0; i < len(data); i+=1 {
-    terminalPutChar(data[i])
-  }
-}
+// 	/* Drive Info buffer */
+// 	DrivesLength uint32
+// 	DrivesAddr   uint32
 
-func Main() {
-  terminalInit()
-  writeString("hello, kernel!")
+// 	/* ROM configuration table */
+// 	ConfigTable uint32
+
+// 	/* Boot Loader Name */
+// 	BootLoaderName uint32
+
+// 	/* APM table */
+// 	ApmTable uint32
+
+// 	/* Video */
+// 	VbeControlInfo  uint32
+// 	VbeModeInfo     uint32
+// 	VbeMode         uint32
+// 	VbeInterfaceSeg uint16
+// 	VbeInterfaceOff uint16
+// 	VbeInterfaceLen uint16
+// }
+
+func Main(magic, addr uintptr) {
+	Init(320, 200, COLOR_WHITE, COLOR_WHITE)
 }
