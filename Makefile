@@ -17,12 +17,12 @@ bootgo.bin: boot.o kernel.o runtime/libgo.so
 boot.o: boot.asm
 	$(NASM) -felf32 boot.asm -o boot.o
 
-kernel.o: kernel.go
-	$(GCCGO) -c kernel.go video.go memio.go -fgo-prefix=bootgo -static-libgo
+kernel.o: kernel.go video.go textvideo.go  memio.go itoa.go
+	$(GCCGO) -c kernel.go video.go textvideo.go memio.go itoa.go -fgo-prefix=bootgo -static-libgo
 
-runtime/libgo.so: runtime/libgo.c runtime/go-type-identity.c runtime/go-type-error.c
+runtime/libgo.so: runtime/libgo.c runtime/go-type-identity.c runtime/go-type-string.c runtime/go-type-error.c
 	cd runtime; \
-	$(GCC) -shared libgo.c go-type-identity.c go-type-error.c -o libgo.so -std=gnu99 -ffreestanding
+	$(GCC) -shared libgo.c go-type-identity.c go-type-string.c go-type-error.c -o libgo.so -std=gnu99 -ffreestanding
 
 run:
 	$(QEMU) -kernel bootgo.bin -vga vmware

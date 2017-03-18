@@ -2,10 +2,10 @@ section .data
   ALIGNED equ 1<<0
   MEMINFO equ 1<<1
   VIDEOINFO equ 1<<2
-  MODETYPE equ 0
+  MODETYPE equ 1
   WIDTH equ 320
   HEIGHT equ 200
-  DEPTH equ 24
+  DEPTH equ 8
   MAGIC equ 0x1BADB002
   FLAGS equ ALIGNED|MEMINFO|VIDEOINFO
   CHECKSUM equ -(MAGIC + FLAGS)

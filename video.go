@@ -1,7 +1,5 @@
 package kernel
 
-import "unsafe"
-
 const (
 	COLOR_BLACK = iota
 	COLOR_BLUE
@@ -21,6 +19,14 @@ const (
 	COLOR_WHITE
 )
 
+// GraphicsVideo graphics mode
+type GraphicsVideo struct {
+	Buffer uintptr
+	Width  int
+	Height int
+	Depth  int
+}
+
 var (
 	BackgroundColor uint8
 	FrontColor      uint8
@@ -28,29 +34,15 @@ var (
 	Height          int
 	Buffer          uintptr = 0xA0000
 	Color           uint8
+	graphicsVideo   GraphicsVideo
 )
 
-func makeColor(fg uint8, bg uint8) uint8 {
-	return fg | bg<<4
-}
-
-func makeVGAEntry(c byte, color uint8) uint16 {
-	return uint16(c) | uint16(color)<<8
-}
-
-func Init(width, height, fontColor, background int) {
-	BackgroundColor = uint8(background)
-	FrontColor = uint8(fontColor)
-	Width = width
-	Height = height
-	Color = makeColor(FrontColor, BackgroundColor)
-	Color = BackgroundColor
-	// var i int
-	// for i = 0; i != 0x1ffff; i++ {
-	// 	addr := (*uint8)(unsafe.Pointer(uintptr(0xA0000 + i)))
-	// 	*addr = 15
-	// }
-	terminalInit()
+// Init set the graphics video params
+func (v *GraphicsVideo) Init(width, height, depth int) {
+	v.Buffer = Buffer
+	v.Width = width
+	v.Height = height
+	v.Depth = depth
 }
 
 func terminalInit() {
@@ -63,44 +55,20 @@ func terminalInit() {
 
 	for y := 0; y < Height; y += 1 {
 		for x := 0; x < Width; x += 1 {
-			drawAt(x, y, Color)
+			// drawAt(x, y, Color)
 			// terminalPutEntryAt(0, Color, x, y)
 		}
 	}
 }
 
-func drawAt(x, y int, color uint8) {
-	index := y*Width + x
-	WriteMemory(Buffer, index, color)
-	// index := y*Width*3 + x*3
-	// ptr := Buffer + uintptr(index)
-	// addr := (*uint8)(unsafe.Pointer(ptr))
-	// *addr = 0xff
-	// addr = (*uint8)(unsafe.Pointer(ptr + 1))
-	// *addr = 0xff
-	// addr = (*uint8)(unsafe.Pointer(ptr + 2))
-	// *addr = 0xff
+func (v *GraphicsVideo) DrawBox(x1, y1, x2, y2 int, color int) {
+	var index int
+	var nColor uint8
+	nColor = uint8(color)
+	for y := y1; y != y2; y++ {
+		for x := x1; x != x2; x++ {
+			index = y*v.Width + x
+			WriteMemory(v.Buffer, index, nColor)
+		}
+	}
 }
-
-func terminalPutEntryAt(c byte, color uint8, x int, y int) {
-	index := y*Width + x
-	addr := (*uint16)(unsafe.Pointer(Buffer + 2*uintptr(index)))
-	*addr = makeVGAEntry(c, color)
-}
-
-// func terminalPutChar(c byte) {
-// 	terminalPutEntryAt(c, color, column, row)
-// 	column += 1
-// 	if column == VGA_WIDTH {
-// 		column = 0
-// 		row += 1
-// 		if row == VGA_HEIGHT {
-// 			row = 0
-// 		}
-// 	}
-// }
-// func writeString(data string) {
-// 	for i := 0; i < len(data); i += 1 {
-// 		terminalPutChar(data[i])
-// 	}
-// }
